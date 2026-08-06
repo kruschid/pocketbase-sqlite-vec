@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test
+        run: go test -tags no_default_driver ./...
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: pocketbase-sqlite-vec:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test
+        run: |
+          docker run --detach --name pocketbase -p 8090:8090 pocketbase-sqlite-vec:test
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8090/api/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs pocketbase
+          exit 1

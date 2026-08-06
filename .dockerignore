@@ -1,0 +1,8 @@
+.git
+.github
+pb_data
+*.db
+*.db-shm
+*.db-wal
+pocketbase
+README.md

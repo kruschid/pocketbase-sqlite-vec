@@ -1,0 +1,18 @@
+services:
+  pocketbase:
+    build:
+      context: .
+      args:
+        POCKETBASE_VERSION: "0.39.10"
+    ports:
+      - "8090:8090"
+    volumes:
+      - pocketbase-data:/pb/pb_data
+      # Uncomment these when your project uses hooks, migrations, or public files.
+      # - ./pb_hooks:/pb/pb_hooks:ro
+      # - ./pb_migrations:/pb/pb_migrations:ro
+      # - ./pb_public:/pb/pb_public:ro
+    restart: unless-stopped
+
+volumes:
+  pocketbase-data:
